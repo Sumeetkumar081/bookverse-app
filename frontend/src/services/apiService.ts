@@ -1,7 +1,7 @@
 
 import { User, Book, PaginatedBooksResponse, Notification, Feedback, ChatSession, ChatMessage, FeedbackStatus, KpiData, GoogleBookSearchResult } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 const handleResponse = async (response: Response) => {
     const text = await response.text();
