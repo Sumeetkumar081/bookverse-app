@@ -1,0 +1,6 @@
+{
+  "name": "Copy of PHP bookverse",
+  "description": "A simple app for closed communities to share and borrow books amongst members. Users can register, list books they own, and borrow books from others.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
