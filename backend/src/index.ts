@@ -1,5 +1,5 @@
 
-import express, { json, urlencoded } from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http';
@@ -28,7 +28,7 @@ if (!process.env.GOOGLE_BOOKS_API_KEY) {
   console.warn('!!! WARNING: GOOGLE_BOOKS_API_KEY is not defined. Book search via Google Books will not work.');
 }
 
-const app = express();
+const app: express.Express = express();
 const httpServer = http.createServer(app);
 const io = new SocketIOServer(httpServer, {
   cors: {
@@ -40,8 +40,8 @@ const port = process.env.PORT || 8080;
 
 // --- CORRECT MIDDLEWARE ORDER ---
 app.use(cors()); 
-app.use(json());
-app.use(urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // --- API ROUTES ---
 app.use('/api/users', userRoutes);

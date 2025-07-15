@@ -1,8 +1,11 @@
 
 
+
 import { Request, Response } from 'express';
 import Feedback from '../models/feedback.model';
-import { FeedbackStatus } from '../../../frontend/src/types';
+
+// Define FeedbackStatus locally to remove dependency on frontend code
+type FeedbackStatus = 'new' | 'read' | 'for_later' | 'resolved';
 
 // @desc    Submit new feedback
 // @route   POST /api/feedback

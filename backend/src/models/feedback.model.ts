@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { FeedbackStatus } from '../../../frontend/src/types'; // This is a slight anti-pattern, but for simplicity here we reference it. In a monorepo, this would be a shared type.
+
+// Define FeedbackStatus locally to remove dependency on frontend code
+export type FeedbackStatus = 'new' | 'read' | 'for_later' | 'resolved';
 
 export interface IFeedback extends Document {
   userId: string;
@@ -23,7 +25,7 @@ const FeedbackSchema: Schema = new Schema({
   timestamps: true,
    toJSON: {
       virtuals: true,
-      transform: (doc, ret: any) => {
+      transform: (doc: any, ret: any) => {
           ret.id = ret._id.toString();
           delete ret._id;
           delete ret.__v;
@@ -31,7 +33,7 @@ const FeedbackSchema: Schema = new Schema({
   },
   toObject: {
       virtuals: true,
-      transform: (doc, ret: any) => {
+      transform: (doc: any, ret: any) => {
           ret.id = ret._id.toString();
           delete ret._id;
           delete ret.__v;
