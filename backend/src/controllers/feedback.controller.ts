@@ -1,6 +1,7 @@
 
 
 
+
 import { Request, Response } from 'express';
 import Feedback from '../models/feedback.model';
 
@@ -10,7 +11,7 @@ type FeedbackStatus = 'new' | 'read' | 'for_later' | 'resolved';
 // @desc    Submit new feedback
 // @route   POST /api/feedback
 // @access  Private
-export const submitFeedback = async (req: any, res: any) => {
+export const submitFeedback = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     const { subject, message } = req.body;
@@ -33,7 +34,7 @@ export const submitFeedback = async (req: any, res: any) => {
 // @desc    Get all feedback
 // @route   GET /api/feedback
 // @access  Admin
-export const getFeedback = async (req: any, res: any) => {
+export const getFeedback = async (req: Request, res: Response) => {
     try {
         const allFeedback = await Feedback.find().sort({ timestamp: -1 });
         res.status(200).json(allFeedback);
@@ -45,7 +46,7 @@ export const getFeedback = async (req: any, res: any) => {
 // @desc    Update feedback status
 // @route   PUT /api/feedback/:feedbackId
 // @access  Admin
-export const updateFeedbackStatus = async (req: any, res: any) => {
+export const updateFeedbackStatus = async (req: Request, res: Response) => {
     const { status } = req.body;
     const { feedbackId } = req.params;
 

@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 // @desc    Initiate or get an existing chat session between two users
 // @route   POST /api/chat/initiate
 // @access  Private
-export const initiateChat = async (req: any, res: any) => {
+export const initiateChat = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     const { otherUserId } = req.body;
@@ -46,7 +46,7 @@ export const initiateChat = async (req: any, res: any) => {
 // @desc    Get all chat sessions for a user
 // @route   GET /api/chat/sessions
 // @access  Private
-export const getChatSessions = async (req: any, res: any) => {
+export const getChatSessions = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -62,7 +62,7 @@ export const getChatSessions = async (req: any, res: any) => {
 // @desc    Get all messages for a specific session from the last 7 days
 // @route   GET /api/chat/sessions/:sessionId/messages
 // @access  Private
-export const getChatMessages = async (req: any, res: any) => {
+export const getChatMessages = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {

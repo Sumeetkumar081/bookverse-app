@@ -6,7 +6,7 @@ import Book from '../models/book.model';
 // @desc    Get key performance indicators
 // @route   GET /api/kpis
 // @access  Admin
-export const getKpis = async (req: any, res: any) => {
+export const getKpis = async (req: Request, res: Response) => {
     try {
         // Fetch the counters document
         const kpiCounters = await Kpi.findOne({ singleton: true });

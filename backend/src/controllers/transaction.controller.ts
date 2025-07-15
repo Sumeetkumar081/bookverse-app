@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 // @desc    Request to borrow a book
 // @route   POST /api/transactions/request/:id
 // @access  Private
-export const requestBook = async (req: any, res: any) => {
+export const requestBook = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -65,7 +65,7 @@ export const requestBook = async (req: any, res: any) => {
 // @desc    Approve a borrow request
 // @route   POST /api/transactions/approve/:id
 // @access  Private (Owner only)
-export const approveRequest = async (req: any, res: any) => {
+export const approveRequest = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -104,7 +104,7 @@ export const approveRequest = async (req: any, res: any) => {
 // @desc    Reject a borrow request
 // @route   POST /api/transactions/reject/:id
 // @access  Private (Owner only)
-export const rejectRequest = async (req: any, res: any) => {
+export const rejectRequest = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -145,7 +145,7 @@ export const rejectRequest = async (req: any, res: any) => {
 // @desc    Cancel a sent borrow request
 // @route   POST /api/transactions/cancel/:id
 // @access  Private (Requester only)
-export const cancelRequest = async (req: any, res: any) => {
+export const cancelRequest = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -186,7 +186,7 @@ export const cancelRequest = async (req: any, res: any) => {
 // @desc    Owner revokes an approval for a borrow request
 // @route   POST /api/transactions/revoke/:id
 // @access  Private (Owner only)
-export const revokeApproval = async (req: any, res: any) => {
+export const revokeApproval = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -232,7 +232,7 @@ export const revokeApproval = async (req: any, res: any) => {
 // @desc    Confirm pickup of a book
 // @route   POST /api/transactions/pickup/:id
 // @access  Private (Requester only)
-export const confirmPickup = async (req: any, res: any) => {
+export const confirmPickup = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -267,7 +267,7 @@ export const confirmPickup = async (req: any, res: any) => {
 // @desc    Mark a book as returned
 // @route   POST /api/transactions/return/:id
 // @access  Private (Owner only)
-export const markAsReturned = async (req: any, res: any) => {
+export const markAsReturned = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
     
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

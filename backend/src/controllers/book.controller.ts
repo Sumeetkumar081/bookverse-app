@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import { notificationService } from '../services/notificationService';
 
 // Helper function to handle validation errors
-const handleValidationError = (error: mongoose.Error.ValidationError, res: any) => {
+const handleValidationError = (error: mongoose.Error.ValidationError, res: Response) => {
     const errors: { [key: string]: string } = {};
     for (const field in error.errors) {
         errors[field] = error.errors[field].message;
@@ -21,7 +21,7 @@ const handleValidationError = (error: mongoose.Error.ValidationError, res: any) 
 // @desc    Get books with filtering, sorting, and pagination
 // @route   GET /api/books
 // @access  Private
-export const getAllBooks = async (req: any, res: any) => {
+export const getAllBooks = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authorized' });
     }
@@ -132,7 +132,7 @@ export const getAllBooks = async (req: any, res: any) => {
 // @desc    Create a new book
 // @route   POST /api/books
 // @access  Private
-export const createBook = async (req: any, res: any) => {
+export const createBook = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authorized' });
     }
@@ -155,7 +155,7 @@ export const createBook = async (req: any, res: any) => {
 // @desc    Update a book by ID
 // @route   PUT /api/books/:id
 // @access  Private (Owner only)
-export const updateBook = async (req: any, res: any) => {
+export const updateBook = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authorized' });
     }
@@ -185,7 +185,7 @@ export const updateBook = async (req: any, res: any) => {
 // @desc    Delete a book by ID
 // @route   DELETE /api/books/:id
 // @access  Private (Owner only)
-export const deleteBook = async (req: any, res: any) => {
+export const deleteBook = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Not authorized' });
     }
@@ -212,7 +212,7 @@ export const deleteBook = async (req: any, res: any) => {
 // @desc    Get a single book by ID
 // @route   GET /api/books/:id
 // @access  Private
-export const getBookById = async (req: any, res: any) => {
+export const getBookById = async (req: Request, res: Response) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ message: 'Invalid book ID format' });
@@ -230,7 +230,7 @@ export const getBookById = async (req: any, res: any) => {
 // @desc    Report a book
 // @route   POST /api/books/:id/report
 // @access  Private
-export const reportBook = async (req: any, res: any) => {
+export const reportBook = async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     const { reason } = req.body;
@@ -263,7 +263,7 @@ export const reportBook = async (req: any, res: any) => {
 // @desc    Search Google Books API
 // @route   GET /api/books/google-search
 // @access  Private
-export const searchGoogleBooks = async (req: any, res: any) => {
+export const searchGoogleBooks = async (req: Request, res: Response) => {
     const { q } = req.query;
     if (!q) {
         return res.status(400).json({ message: 'Search query (q) is required.' });
@@ -313,7 +313,7 @@ export const searchGoogleBooks = async (req: any, res: any) => {
 // @desc    Get books for moderation queue
 // @route   GET /api/books/admin/moderation
 // @access  Admin
-export const getModerationQueue = async (req: any, res: any) => {
+export const getModerationQueue = async (req: Request, res: Response) => {
     const { status = 'reported' } = req.query; // 'reported' or 'deactivated'
     
     const query: any = {};
@@ -337,7 +337,7 @@ export const getModerationQueue = async (req: any, res: any) => {
 // @desc    Admin deactivates a book
 // @route   POST /api/books/admin/:bookId/deactivate
 // @access  Admin
-export const deactivateBook = async (req: any, res: any) => {
+export const deactivateBook = async (req: Request, res: Response) => {
     try {
         const book = await Book.findByIdAndUpdate(req.params.bookId, { isDeactivatedByAdmin: true }, { new: true });
         if (!book) return res.status(404).json({ message: 'Book not found' });
@@ -361,7 +361,7 @@ export const deactivateBook = async (req: any, res: any) => {
 // @desc    Admin reactivates a book
 // @route   POST /api/books/admin/:bookId/reactivate
 // @access  Admin
-export const reactivateBook = async (req: any, res: any) => {
+export const reactivateBook = async (req: Request, res: Response) => {
     try {
         const book = await Book.findByIdAndUpdate(
             req.params.bookId, 
@@ -389,7 +389,7 @@ export const reactivateBook = async (req: any, res: any) => {
 // @desc    Admin dismisses a report on a book
 // @route   POST /api/books/admin/:bookId/dismiss-report
 // @access  Admin
-export const dismissReport = async (req: any, res: any) => {
+export const dismissReport = async (req: Request, res: Response) => {
     try {
         const book = await Book.findByIdAndUpdate(
             req.params.bookId, 

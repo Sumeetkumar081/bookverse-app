@@ -1,4 +1,5 @@
 
+
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import jwt from 'jsonwebtoken';
@@ -13,7 +14,7 @@ const generateToken = (id: string): string => {
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
-export const registerUser = async (req: any, res: any) => {
+export const registerUser = async (req: Request, res: Response) => {
     const { name, email, phoneNumber, communityUnit, password, mygateId } = req.body;
 
     try {
@@ -48,7 +49,7 @@ export const registerUser = async (req: any, res: any) => {
 // @desc    Authenticate user & get token
 // @route   POST /api/users/login
 // @access  Public
-export const loginUser = async (req: any, res: any) => {
+export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     try {
@@ -81,7 +82,7 @@ export const loginUser = async (req: any, res: any) => {
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
-export const getUserProfile = async (req: any, res: any) => {
+export const getUserProfile = async (req: Request, res: Response) => {
     if (req.user) {
         res.json(req.user);
     } else {
