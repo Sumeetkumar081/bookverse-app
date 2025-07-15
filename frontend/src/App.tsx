@@ -225,8 +225,8 @@ interface MyActivitySectionProps {
     onConfirmPickup?: (bookId: string) => void;
     onCancelRequest?: (bookId: string) => void;
     onInitiateChat?: (otherUserId: string) => void;
-    onApproveRequest?: (bookId: string, requesterId: string) => void;
-    onRejectRequest?: (bookId: string, requesterId: string) => void;
+    onApproveRequest?: (bookId: string) => void;
+    onRejectRequest?: (bookId: string) => void;
     onRevokeApproval?: (bookId: string) => void;
     onMarkAsReturned?: (bookId: string) => void;
     onRemindBorrower?: (bookId: string, borrowerId: string) => void;
@@ -686,11 +686,6 @@ const App: React.FC = () => {
 
   // Collapsible sections state
   const [isAddBookSectionOpen, setIsAddBookSectionOpen] = useState<boolean>(true); 
-  const [isMyOtherBooksSectionOpen, setIsMyOtherBooksSectionOpen] = useState<boolean>(true); 
-  const [isIncomingRequestsSectionOpen, setIsIncomingRequestsSectionOpen] = useState<boolean>(true); 
-  const [isApprovedForPickupSectionOpen, setIsApprovedForPickupSectionOpen] = useState<boolean>(false); 
-  const [isLentOutBooksSectionOpen, setIsLentOutBooksSectionOpen] = useState<boolean>(false); 
-  const [isGivenAwayBooksSectionOpen, setIsGivenAwayBooksSectionOpen] = useState<boolean>(false); 
 
 
   // Book Deletion Modal
@@ -727,10 +722,7 @@ const App: React.FC = () => {
   const [adminUserActivityFilter, setAdminUserActivityFilter] = useState<'active' | 'all' | 'deactivated' | 'reactivation_requested'>('all');
   const [adminFeedbackFilterStatus, setAdminFeedbackFilterStatus] = useState<FeedbackStatus | 'all'>('all');
   const [adminContentFilter, setAdminContentFilter] = useState<'reported' | 'deactivated'>('reported');
-  const [adminUsersPage, setAdminUsersPage] = useState<number>(1);
-  const [openFeedbackId, setOpenFeedbackId] = useState<string | null>(null);
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
-  const ADMIN_ITEMS_PER_PAGE = 10;
 
   const isAdminMode = currentUser?.isAdmin || false;
 
@@ -1276,29 +1268,26 @@ const App: React.FC = () => {
         setAuthActionInProgress(false);
     }
   }, [loginEmail, password, createToast]);
-
+  
   const handleForgotPasswordRequest = useCallback(async () => {
     setResetPasswordError('');
     if (!emailForReset) {
-      setResetPasswordError('Please enter an email address.');
+      setResetPasswordError('Please enter your email address.');
       return;
     }
+    setAuthActionInProgress(true);
     try {
       const response = await apiService.forgotPassword(emailForReset);
       createToast(response.message, 'success');
       setShowForgotPasswordModal(false);
     } catch (error: any) {
-      setResetPasswordError(error.message || 'Failed to send reset request.');
+      setResetPasswordError(error.message || 'Failed to send reset instructions.');
+      createToast(error.message || 'Failed to send reset instructions.', 'error');
+    } finally {
+      setAuthActionInProgress(false);
     }
   }, [emailForReset, createToast]);
 
-  const handleResetPassword = useCallback(async () => {
-    // This is a placeholder as the token handling from email is not feasible here.
-    // In a real app, the token from the email URL would be captured and sent.
-    createToast("Password reset functionality would be completed via an email link.", 'info');
-    setShowResetPasswordModal(false);
-  }, [createToast]);
-  
   const handleLogout = () => {
     if (socket) {
       socket.disconnect();
@@ -1486,7 +1475,7 @@ const App: React.FC = () => {
     }
   }, [createToast, refreshRelevantData]);
 
-  const handleApproveRequest = useCallback(async (bookId: string, requesterId: string) => {
+  const handleApproveRequest = useCallback(async (bookId: string) => {
     const token = localStorage.getItem('userToken');
     if (!token) return handleLogout();
     try {
@@ -1498,7 +1487,7 @@ const App: React.FC = () => {
     }
   }, [createToast, refreshRelevantData]);
 
-  const handleRejectRequest = useCallback(async (bookId: string, requesterId: string) => {
+  const handleRejectRequest = useCallback(async (bookId: string) => {
     const token = localStorage.getItem('userToken');
     if (!token) return handleLogout();
     try {
@@ -2013,7 +2002,7 @@ const App: React.FC = () => {
 
             {authMode === 'login' && ( <>
                 <AuthInput id="loginEmail" type="email" label="Email Address" value={loginEmail} onChange={setLoginEmail} error={validationErrors.email} placeholder="Your registered email" clearError={() => clearValidationErrorsForField('email')} />
-                <AuthInput id="password" label="Password" value={password} onChange={setPassword} error={validationErrors.password} placeholder="Your password" type={loginPasswordVisible ? 'text' : 'password'} clearError={() => clearValidationErrorsForField('password')}>
+                <AuthInput id="password" label="Password" value={password} onChange={setPassword} error={validationErrors.password} placeholder="Your password" type={loginPasswordVisible ? 'text' : 'password'}>
                     <button type="button" onClick={() => setLoginPasswordVisible(!loginPasswordVisible)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
                         {loginPasswordVisible ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>

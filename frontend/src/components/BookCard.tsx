@@ -4,7 +4,7 @@ import { Book, User, OverdueInfo, AppButtonProps } from '../types'; // Added App
 import { 
   ArrowRightOnRectangleIcon, CheckCircleIcon, XCircleIcon, ArrowUturnLeftIcon,
   ClockIcon, HandThumbUpIcon, HandThumbDownIcon, CheckBadgeIcon, BookOpenIcon as DefaultBookIcon,
-  HomeModernIcon, UserCircleIcon, TrashIcon, PauseIcon, PlayIcon, GiftIcon,
+  UserCircleIcon, TrashIcon, PauseIcon, PlayIcon, GiftIcon,
   FlagIcon, ShieldExclamationIcon, InformationCircleIcon, HeartIcon, ChatBubbleOvalLeftEllipsisIcon,
   PencilSquareIcon // Added for Edit
 } from '../constants'; 
@@ -17,8 +17,8 @@ interface BookCardProps {
   currentUser: User | null;
   onrequestbook: (bookId: string) => void;
   onMarkAsReturned: (bookId: string) => void;
-  onApproveRequest: (bookId: string, requesterId: string) => void;
-  onRejectRequest: (bookId: string, requesterId: string) => void;
+  onApproveRequest: (bookId: string) => void;
+  onRejectRequest: (bookId: string) => void;
   onRevokeApproval?: (bookId: string) => void; // New for owner to revoke approval
   onConfirmPickup: (bookId: string) => void; 
   onCancelRequest?: (bookId: string) => void; 
@@ -283,8 +283,8 @@ const BookCard: React.FC<BookCardProps> = ({
           )}
           {canOwnerActOnRequest && requester && (
             <div className="flex gap-1.5">
-              <AppButton onClick={() => onApproveRequest(book.id, requester.id)} flex1 icon={<HandThumbUpIcon className="w-4 h-4 mr-1"/>} variant="confirm" size="sm">Approve</AppButton>
-              <AppButton onClick={() => onRejectRequest(book.id, requester.id)} flex1 icon={<HandThumbDownIcon className="w-4 h-4 mr-1"/>} variant="danger" size="sm">Reject</AppButton>
+              <AppButton onClick={() => onApproveRequest(book.id)} flex1 icon={<HandThumbUpIcon className="w-4 h-4 mr-1"/>} variant="confirm" size="sm">Approve</AppButton>
+              <AppButton onClick={() => onRejectRequest(book.id)} flex1 icon={<HandThumbDownIcon className="w-4 h-4 mr-1"/>} variant="danger" size="sm">Reject</AppButton>
             </div>
           )}
           {canRequesterConfirmPickup && (

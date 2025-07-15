@@ -28,7 +28,7 @@ if (!process.env.GOOGLE_BOOKS_API_KEY) {
   console.warn('!!! WARNING: GOOGLE_BOOKS_API_KEY is not defined. Book search via Google Books will not work.');
 }
 
-const app: express.Express = express();
+const app = express();
 const httpServer = http.createServer(app);
 const io = new SocketIOServer(httpServer, {
   cors: {
