@@ -1,19 +1,19 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { User, Book, Notification, View, OverdueInfo, Feedback, FeedbackStatus, AdminSubView, FAQItem, ChatSession, ChatMessage, AppButtonProps, BorrowRequestStatus, GoogleBookSearchResult, MyLibrarySubView, PaginatedBooksResponse, KpiData } from './types';
+import { User, Book, Notification, View, OverdueInfo, Feedback, FeedbackStatus, AdminSubView, ChatSession, ChatMessage, AppButtonProps, GoogleBookSearchResult, MyLibrarySubView, PaginatedBooksResponse, KpiData } from './types';
 import { apiService } from './services/apiService';
 import BookCard from './components/BookCard';
 import { 
-  BookOpenIcon, UserPlusIcon, PlusCircleIcon, UsersIcon, 
-  HomeIcon, LibraryIcon, ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon, BellIcon,
-  HandThumbUpIcon, HandThumbDownIcon, ClockIcon, XCircleIcon, CheckCircleIcon,
-  InboxStackIcon, EnvelopeIcon, CheckBadgeIcon, ArrowUturnLeftIcon, UserCircleIcon, TrashIcon,
+  BookOpenIcon, UserPlusIcon, UsersIcon, 
+  HomeIcon, LibraryIcon, ArrowLeftOnRectangleIcon, BellIcon,
+  ClockIcon, XCircleIcon, CheckCircleIcon,
+  InboxStackIcon, EnvelopeIcon, CheckBadgeIcon, ArrowUturnLeftIcon, UserCircleIcon, 
   PhotoIcon, MagnifyingGlassIcon, InformationCircleIcon, SparklesIcon,
-  HomeModernIcon, PhoneIcon, ShieldCheckIcon, ChatBubbleLeftEllipsisIcon, ChevronDownIcon, ChevronUpIcon,
-  PauseIcon, PlayIcon, GiftIcon, BOOK_GENRES, BOOK_LANGUAGES, ArrowPathIcon, EyeIcon, EyeSlashIcon, QuestionMarkCircleIcon,
+  PhoneIcon, ShieldCheckIcon, ChatBubbleLeftEllipsisIcon, ChevronDownIcon, ChevronUpIcon,
+  GiftIcon, BOOK_GENRES, BOOK_LANGUAGES, ArrowPathIcon, EyeIcon, EyeSlashIcon, QuestionMarkCircleIcon,
   FAQ_DATA, HandRaisedIcon, FlagIcon, ShieldExclamationIcon, UserCheckIcon, HeartIcon, ChatBubbleOvalLeftEllipsisIcon, PaperAirplaneIcon,
-  CalendarDaysIcon, ArrowRightCircleIcon, ArrowDownCircleIcon, PencilSquareIcon, ArrowRightStartOnRectangleIcon, DefaultBookIcon, Tooltip,
+  ArrowRightCircleIcon, ArrowDownCircleIcon, ArrowRightStartOnRectangleIcon, DefaultBookIcon, Tooltip,
   ArrowLeftIcon
 } from './constants'; 
 
@@ -100,35 +100,6 @@ const AuthButton: React.FC<AuthButtonProps> = ({ children, variant = 'primary', 
   else if (variant === 'confirm') variantStyle = "bg-green-600 text-white hover:bg-green-700 focus:ring-green-400";
   return <button className={`${baseStyle} ${variantStyle}`} {...props}>{children}</button>;
 };
-
-interface CollapsibleSectionProps {
-  title: string;
-  icon?: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  contentClassName?: string;
-}
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, icon, isOpen, onToggle, children, contentClassName }) => (
-  <div className={`bg-white rounded-xl shadow-lg transition-all duration-300 ${isOpen ? 'ring-1 ring-slate-200' : ''}`}>
-    <button
-      onClick={onToggle}
-      className="w-full flex justify-between items-center p-3 sm:p-4 text-left font-semibold text-slate-700 hover:bg-slate-50 rounded-t-xl focus:outline-none"
-      aria-expanded={isOpen}
-    >
-      <span className="flex items-center text-lg">
-        {icon}
-        {title}
-      </span>
-      {isOpen ? <ChevronUpIcon className="w-5 h-5 text-slate-500" /> : <ChevronDownIcon className="w-5 h-5 text-slate-500" />}
-    </button>
-    {isOpen && (
-      <div className={`p-3 sm:p-4 border-t border-slate-200 ${contentClassName || ''}`}>
-        {children}
-      </div>
-    )}
-  </div>
-);
 
 interface FormInputProps {
   id: string;
@@ -509,16 +480,6 @@ const HowItWorksGuide: React.FC = () => {
   );
 };
 
-const StatCard: React.FC<{icon: React.ReactNode, value: number, label: string, colorClass: string}> = ({icon, value, label, colorClass}) => (
-  <div className={`p-3 rounded-lg shadow-md flex items-center space-x-3 bg-gradient-to-br ${colorClass} text-white transition-transform hover:scale-105`}>
-      <div className="p-2 bg-white/20 rounded-full">{icon}</div>
-      <div>
-          <p className="text-xl font-bold">{value}</p>
-          <p className="text-xs">{label}</p>
-      </div>
-  </div>
-);
-
 const AdminStatCard: React.FC<{title:string, value: number | string, icon: React.ReactNode, color: string}> = ({title, value, icon, color}) => (
   <div className={`bg-white p-4 rounded-lg shadow-md border-l-4 ${color}`}>
       <div className="flex items-center justify-between">
@@ -585,7 +546,6 @@ const App: React.FC = () => {
   const [feedbackFormErrors, setFeedbackFormErrors] = useState<Record<string, string>>({});
   const [editBookFormErrors, setEditBookFormErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [toastNotifications, setToastNotifications] = useState<ToastNotification[]>([]);
 
   // Book Data State
@@ -621,17 +581,12 @@ const App: React.FC = () => {
   const [editEmailOptOut, setEditEmailOptOut] = useState<boolean>(false); 
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState<boolean>(false);
   const [showDeactivateProfileModal, setShowDeactivateProfileModal] = useState<boolean>(false);
-  const [showReactivateProfileModal, setShowReactivateProfileModal] = useState<boolean>(false);
 
   // Forgot Password State
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [emailForReset, setEmailForReset] = useState('');
-  const [userToReset, setUserToReset] = useState<User | null>(null);
-  const [newPasswordForReset, setNewPasswordForReset] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState('');
-  const [resetPasswordVisible, setResetPasswordVisible] = useState(false);
   const [reactivationMessage, setReactivationMessage] = useState<string | null>(null);
 
 
@@ -640,7 +595,6 @@ const App: React.FC = () => {
   const [filterAvailability, setFilterAvailability] = useState<'all' | 'available' | 'unavailable'>('available'); 
   const [filterGenre, setFilterGenre] = useState<string>('all');
   const [filterLanguage, setFilterLanguage] = useState<string>('all'); 
-  const [filterDateAdded, setFilterDateAdded] = useState<string>('any'); 
   const [filterGiveawayOnly, setFilterGiveawayOnly] = useState<boolean>(false);
   const [sortOrder, setSortOrder] = useState<string>('date_desc');
   
@@ -668,24 +622,17 @@ const App: React.FC = () => {
 
   const [communityPage, setCommunityPage] = useState(1);
   const [myCollectionPage, setMyCollectionPage] = useState(1);
-  const [myBorrowsPage, setMyBorrowsPage] = useState(1);
-  const [myLendingPage, setMyLendingPage] = useState(1);
 
   // UI State
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const notificationsDropdownRef = useRef<HTMLDivElement>(null);
-  const profileButtonRef = useRef<HTMLButtonElement>(null); 
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null); 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuDropdownRef = useRef<HTMLDivElement>(null);
   const [magnifiedImageUrl, setMagnifiedImageUrl] = useState<string | null>(null);
   const [myLibrarySubView, setMyLibrarySubView] = useState<MyLibrarySubView>('collection');
-
-
-  // Collapsible sections state
-  const [isAddBookSectionOpen, setIsAddBookSectionOpen] = useState<boolean>(true); 
 
 
   // Book Deletion Modal
@@ -809,7 +756,6 @@ const App: React.FC = () => {
         return;
     }
     setIsLoading(true);
-    setLoadError(null);
     try {
         const filters = {
             ...submittedFilters,
@@ -820,7 +766,6 @@ const App: React.FC = () => {
         setCommunityBooksData(data);
         setCommunityPage(page);
     } catch (error: any) {
-        setLoadError(error.message || 'Failed to fetch community books.');
         createToast(error.message || 'Failed to fetch community books.', 'error');
     } finally {
         setIsLoading(false);
@@ -1847,10 +1792,10 @@ const App: React.FC = () => {
         genre: filterGenre,
         language: filterLanguage,
         giveawayOnly: filterGiveawayOnly,
-        dateAdded: filterDateAdded,
+        dateAdded: 'any',
         sortOrder: sortOrder,
       });
-  }, [filterSearchTerm, filterAvailability, filterGenre, filterLanguage, filterGiveawayOnly, filterDateAdded, sortOrder]);
+  }, [filterSearchTerm, filterAvailability, filterGenre, filterLanguage, filterGiveawayOnly, sortOrder]);
 
   const handleMyCollectionSearchButtonClick = useCallback(() => {
       setMyCollectionPage(1);
@@ -2002,7 +1947,7 @@ const App: React.FC = () => {
 
             {authMode === 'login' && ( <>
                 <AuthInput id="loginEmail" type="email" label="Email Address" value={loginEmail} onChange={setLoginEmail} error={validationErrors.email} placeholder="Your registered email" clearError={() => clearValidationErrorsForField('email')} />
-                <AuthInput id="password" label="Password" value={password} onChange={setPassword} error={validationErrors.password} placeholder="Your password" type={loginPasswordVisible ? 'text' : 'password'}>
+                <AuthInput id="password" label="Password" value={password} onChange={setPassword} error={validationErrors.password} placeholder="Your password" type={loginPasswordVisible ? 'text' : 'password'} clearError={() => clearValidationErrorsForField('password')}>
                     <button type="button" onClick={() => setLoginPasswordVisible(!loginPasswordVisible)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
                         {loginPasswordVisible ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>

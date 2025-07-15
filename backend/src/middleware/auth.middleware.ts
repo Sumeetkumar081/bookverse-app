@@ -1,6 +1,6 @@
 
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/user.model';
 import { Document } from 'mongoose';
 import { Socket } from 'socket.io';
@@ -31,7 +31,7 @@ declare module 'socket.io' {
  * Middleware to protect standard HTTP routes.
  * Verifies JWT from 'Authorization' header.
  */
-export const protect = async (req: any, res: any, next: NextFunction) => {
+export const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
@@ -56,7 +56,7 @@ export const protect = async (req: any, res: any, next: NextFunction) => {
  * Middleware for standard HTTP routes to ensure user is an admin.
  * Must be used AFTER `protect`.
  */
-export const adminProtect = (req: any, res: any, next: NextFunction) => {
+export const adminProtect = (req: Request, res: Response, next: NextFunction) => {
     if (req.user && req.user.isAdmin) {
         next();
     } else {
