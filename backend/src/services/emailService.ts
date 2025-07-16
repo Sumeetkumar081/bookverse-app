@@ -29,13 +29,28 @@ const sendEmail = async (to: string, subject: string, html: string, text: string
     html,
   };
 
+  // This is a workaround for local development environments with SSL/TLS interception (e.g., corporate proxies)
+  // that cause 'self-signed certificate in certificate chain' errors.
+  // It temporarily disables strict SSL certificate validation for this specific API call.
+  // THIS IS INSECURE AND SHOULD NOT BE USED IN PRODUCTION.
+  const originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  
   try {
+    if (process.env.NODE_ENV !== 'production') {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+    
     await sgMail.send(msg);
     console.log(`Email sent to ${to}`);
   } catch (error) {
     console.error('Error sending email:', error);
     if ((error as any).response) {
       console.error((error as any).response.body);
+    }
+  } finally {
+    // Restore the original SSL/TLS setting after the API call is complete.
+    if (process.env.NODE_ENV !== 'production') {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalRejectUnauthorized;
     }
   }
 };
