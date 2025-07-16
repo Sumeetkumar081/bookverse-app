@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 // This must be done before any other application files are imported.
 dotenv.config();
 
-import express, { json, urlencoded } from 'express';
+import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
@@ -41,8 +41,8 @@ const port = process.env.PORT || 8080;
 
 // --- CORRECT MIDDLEWARE ORDER ---
 app.use(cors()); 
-app.use(json());
-app.use(urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // --- API ROUTES ---
 app.use('/api/users', userRoutes);

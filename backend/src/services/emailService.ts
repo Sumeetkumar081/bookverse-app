@@ -1,38 +1,36 @@
+
 import sgMail from '@sendgrid/mail';
 import { IUser } from '../models/user.model';
 import { IBook } from '../models/book.model';
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-} else {
-  console.warn('!!! WARNING: SENDGRID_API_KEY is not defined. Emails will be logged to console instead of being sent.');
+// --- DIAGNOSTIC LOGGING ---
+const isSendGridConfigured = !!process.env.SENDGRID_API_KEY && !!process.env.SENDGRID_FROM_EMAIL;
+console.log('--- [EmailService Diagnostics] ---');
+console.log(`SENDGRID_API_KEY loaded: ${process.env.SENDGRID_API_KEY ? `Yes (length: ${process.env.SENDGRID_API_KEY.length})` : 'No - MISSING!'}`);
+console.log(`SENDGRID_FROM_EMAIL loaded: ${process.env.SENDGRID_FROM_EMAIL ? `Yes (${process.env.SENDGRID_FROM_EMAIL})` : 'No - MISSING!'}`);
+console.log(`Email service configured to run: ${isSendGridConfigured}`);
+console.log('------------------------------------');
+// --- END DIAGNOSTIC LOGGING ---
+
+if (isSendGridConfigured) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 }
 
-const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@bookverse.com';
-const appUrl = process.env.APP_URL || 'http://localhost:8080'; // A bit of a guess, but better than nothing
+const fromEmail = process.env.SENDGRID_FROM_EMAIL!;
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'; // This should point to your frontend's URL.
 
 const sendEmail = async (to: string, subject: string, html: string, text: string) => {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
-    console.log('--- SIMULATING EMAIL ---');
+  if (!isSendGridConfigured) {
+    console.log('--- SIMULATING EMAIL (SendGrid not configured) ---');
     console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
-    console.log(`Body: ${text}`);
-    console.log('------------------------');
+    console.log(`Body (text): ${text}`);
+    console.log('--------------------------------------------------');
     return;
   }
 
-  const msg = {
-    to,
-    from: fromEmail,
-    subject,
-    text,
-    html,
-  };
+  const msg = { to, from: fromEmail, subject, text, html };
 
-  // This is a workaround for local development environments with SSL/TLS interception (e.g., corporate proxies)
-  // that cause 'self-signed certificate in certificate chain' errors.
-  // It temporarily disables strict SSL certificate validation for this specific API call.
-  // THIS IS INSECURE AND SHOULD NOT BE USED IN PRODUCTION.
   const originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
   
   try {
@@ -41,14 +39,13 @@ const sendEmail = async (to: string, subject: string, html: string, text: string
     }
     
     await sgMail.send(msg);
-    console.log(`Email sent to ${to}`);
+    console.log(`[EmailService] Email sent successfully to ${to} with subject "${subject}"`);
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('[EmailService] Error sending email:', error);
     if ((error as any).response) {
-      console.error((error as any).response.body);
+      console.error('[EmailService] SendGrid response body:', (error as any).response.body);
     }
   } finally {
-    // Restore the original SSL/TLS setting after the API call is complete.
     if (process.env.NODE_ENV !== 'production') {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalRejectUnauthorized;
     }
@@ -60,7 +57,7 @@ export const emailService = {
     const subject = `[BookVerse] Welcome! Your registration is approved.`;
     const text = `Hi ${user.name},\n\nWelcome to BookVerse! Your account has been approved by an administrator. You can now log in and start sharing and borrowing books.\n\nHappy reading,\nThe BookVerse Team`;
     const html = `<p>Hi ${user.name},</p><p>Welcome to BookVerse! Your account has been approved by an administrator. You can now log in and start sharing and borrowing books.</p><p>Happy reading,<br>The BookVerse Team</p>`;
-    await sendEmail(user.email, subject, html, text);
+    if (!user.emailOptOut) await sendEmail(user.email, subject, html, text);
   },
 
   sendRegistrationRejectedEmail: async (user: IUser) => {
@@ -71,9 +68,9 @@ export const emailService = {
   },
   
   sendPasswordResetEmail: async (user: IUser, resetToken: string) => {
-    const resetUrl = `${appUrl}/reset-password/${resetToken}`; // In a real app, this URL would point to the frontend reset page
+    const resetUrl = `${frontendUrl}/?resetToken=${resetToken}`; // This creates a URL the frontend can parse
     const subject = `[BookVerse] Reset Your Password`;
-    const text = `Hi ${user.name},\n\nYou are receiving this email because you (or someone else) have requested the reset of a password. Please make a POST request or click the link below to reset your password:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\nThis link is valid for 10 minutes.\n\nThanks,\nThe BookVerse Team`;
+    const text = `Hi ${user.name},\n\nYou are receiving this email because you (or someone else) have requested the reset of a password. Please click the link below to reset your password:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\nThis link is valid for 10 minutes.\n\nThanks,\nThe BookVerse Team`;
     const html = `<p>Hi ${user.name},</p><p>You are receiving this email because you (or someone else) have requested the reset of a password. Please click the link below to reset your password:</p><p><a href="${resetUrl}">Reset Password</a></p><p>If you did not request this, please ignore this email and your password will remain unchanged.</p><p>This link is valid for 10 minutes.</p><p>Thanks,<br>The BookVerse Team</p>`;
     await sendEmail(user.email, subject, html, text);
   },

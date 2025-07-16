@@ -18,7 +18,7 @@ import {
 } from './constants'; 
 
 type AuthMode = 'login' | 'register';
-const CHAT_MESSAGE_MAX_LENGTH = 40;
+const CHAT_MESSAGE_MAX_LENGTH = 280;
 const ITEMS_PER_PAGE = 10;
 const REQUEST_LIMIT = 5;
 
@@ -582,12 +582,15 @@ const App: React.FC = () => {
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState<boolean>(false);
   const [showDeactivateProfileModal, setShowDeactivateProfileModal] = useState<boolean>(false);
 
-  // Forgot Password State
+  // Forgot/Reset Password State
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [emailForReset, setEmailForReset] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState('');
   const [reactivationMessage, setReactivationMessage] = useState<string | null>(null);
+  const [resetTokenFromUrl, setResetTokenFromUrl] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
 
   // Community Filters State (for live input)
@@ -986,8 +989,18 @@ const App: React.FC = () => {
 
   // Initial data load effect
   useEffect(() => {
-    const checkLoggedIn = async () => {
+    const checkLoggedInAndHandleToken = async () => {
         setIsLoading(true);
+        // Check for password reset token in URL first
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('resetToken');
+        if (tokenFromUrl) {
+            setResetTokenFromUrl(tokenFromUrl);
+            setShowResetPasswordModal(true);
+            // Clean up URL so the token isn't visible or reused on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         const token = localStorage.getItem('userToken');
         if (token) {
             try {
@@ -999,14 +1012,14 @@ const App: React.FC = () => {
             } catch (error) {
                 console.error("Session restore failed:", error);
                 localStorage.removeItem('userToken');
-                setCurrentView('auth');
+                if (!tokenFromUrl) setCurrentView('auth');
             }
         } else {
-            setCurrentView('auth');
+             if (!tokenFromUrl) setCurrentView('auth');
         }
         setIsLoading(false);
     };
-    checkLoggedIn();
+    checkLoggedInAndHandleToken();
   }, [fetchNotifications]);
 
   // Data fetching effects for different views
@@ -1232,6 +1245,35 @@ const App: React.FC = () => {
       setAuthActionInProgress(false);
     }
   }, [emailForReset, createToast]);
+
+  const handleResetPasswordSubmit = useCallback(async () => {
+    if (newPassword.length < 6) {
+        setResetPasswordError('Password must be at least 6 characters long.');
+        return;
+    }
+    if (newPassword !== confirmNewPassword) {
+        setResetPasswordError('Passwords do not match.');
+        return;
+    }
+    if (!resetTokenFromUrl) {
+        setResetPasswordError('No reset token found. Please use the link from your email again.');
+        return;
+    }
+    setAuthActionInProgress(true);
+    setResetPasswordError('');
+    try {
+        const response = await apiService.resetPassword(resetTokenFromUrl, newPassword);
+        createToast(response.message, 'success');
+        setShowResetPasswordModal(false);
+        setResetTokenFromUrl(null);
+        setNewPassword('');
+        setConfirmNewPassword('');
+    } catch (error: any) {
+        setResetPasswordError(error.message || 'Failed to reset password.');
+    } finally {
+        setAuthActionInProgress(false);
+    }
+  }, [newPassword, confirmNewPassword, resetTokenFromUrl, createToast]);
 
   const handleLogout = () => {
     if (socket) {
@@ -2652,7 +2694,7 @@ const App: React.FC = () => {
                                             maxLength={CHAT_MESSAGE_MAX_LENGTH}
                                             className="w-full p-2 border rounded-lg pr-12"
                                         />
-                                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${chatMessageInput.length > CHAT_MESSAGE_MAX_LENGTH ? 'text-red-500' : 'text-slate-400'}`}>
+                                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${chatMessageInput.length >= CHAT_MESSAGE_MAX_LENGTH ? 'text-red-500' : 'text-slate-400'}`}>
                                             {chatMessageInput.length}/{CHAT_MESSAGE_MAX_LENGTH}
                                         </span>
                                     </div>
@@ -3040,7 +3082,7 @@ const App: React.FC = () => {
 
     const renderForgotPasswordModalContent = () => (
         <div className="space-y-4">
-             <p className="text-sm text-slate-600">Enter your email address and we'll send you instructions to reset your password. (This is a simplified flow for this environment).</p>
+             <p className="text-sm text-slate-600">Enter your email address and we'll send you instructions to reset your password.</p>
             {resetPasswordError && <AlertToast id="reset-error" type="error" message={resetPasswordError} onClose={() => setResetPasswordError('')} />}
             <AuthInput 
                 id="emailForReset"
@@ -3053,16 +3095,41 @@ const App: React.FC = () => {
             />
             <div className="flex justify-end gap-2">
                 <AppButton variant="secondary" onClick={() => setShowForgotPasswordModal(false)}>Cancel</AppButton>
-                <AppButton onClick={handleForgotPasswordRequest}>Send Reset Instructions</AppButton>
+                <AppButton onClick={handleForgotPasswordRequest} disabled={authActionInProgress}>
+                    {authActionInProgress ? 'Sending...' : 'Send Reset Instructions'}
+                </AppButton>
             </div>
         </div>
     );
 
     const renderResetPasswordModalContent = () => (
         <div className="space-y-4">
-            <p className="text-sm text-slate-600">This modal is a placeholder. In a real application, you would receive a link in your email to reset your password.</p>
-            <div className="flex justify-end">
-                <AppButton variant="secondary" onClick={() => setShowResetPasswordModal(false)}>Close</AppButton>
+            <p className="text-sm text-slate-600">Please enter and confirm your new password.</p>
+            {resetPasswordError && <AlertToast id="reset-error" type="error" message={resetPasswordError} onClose={() => setResetPasswordError('')} />}
+            <AuthInput 
+                id="newPassword"
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="Enter a new secure password"
+                clearError={() => setResetPasswordError('')}
+            />
+            <PasswordStrengthMeter password={newPassword} />
+            <AuthInput 
+                id="confirmNewPassword"
+                label="Confirm New Password"
+                type="password"
+                value={confirmNewPassword}
+                onChange={setConfirmNewPassword}
+                placeholder="Confirm your new password"
+                clearError={() => setResetPasswordError('')}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+                <AppButton variant="secondary" onClick={() => setShowResetPasswordModal(false)}>Cancel</AppButton>
+                <AppButton onClick={handleResetPasswordSubmit} disabled={authActionInProgress}>
+                    {authActionInProgress ? <ArrowPathIcon className="w-5 h-5 animate-spin mx-auto"/> : 'Reset Password'}
+                </AppButton>
             </div>
         </div>
     );
@@ -3177,7 +3244,7 @@ const App: React.FC = () => {
             </Modal>
         )}
         {showResetPasswordModal && (
-            <Modal title="Reset Password" onClose={() => setShowResetPasswordModal(false)} size="md">
+            <Modal title="Reset Your Password" onClose={() => setShowResetPasswordModal(false)} size="md">
                 {renderResetPasswordModalContent()}
             </Modal>
         )}

@@ -49,6 +49,15 @@ export const apiService = {
         });
         return handleResponse(response);
     },
+
+    resetPassword: async (token: string, password: string): Promise<{ message: string }> => {
+        const response = await fetch(`${API_BASE_URL}/users/reset-password/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        return handleResponse(response);
+    },
     
     requestReactivation: async (email: string): Promise<{ message: string }> => {
         const response = await fetch(`${API_BASE_URL}/users/profile/reactivate-request`, {
