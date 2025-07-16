@@ -1,6 +1,10 @@
 
-import express from 'express';
 import dotenv from 'dotenv';
+// Load environment variables IMMEDIATELY from the .env file.
+// This must be done before any other application files are imported.
+dotenv.config();
+
+import express, { json, urlencoded } from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
@@ -16,10 +20,7 @@ import ChatSession from './models/chatSession.model';
 import ChatMessage from './models/chatMessage.model';
 import mongoose from 'mongoose';
 
-// Load environment variables from .env file
-dotenv.config();
-
-// Check for essential environment variables
+// Check for essential environment variables (now that they are loaded)
 if (!process.env.JWT_SECRET) {
   console.error('FATAL ERROR: JWT_SECRET is not defined. Please add it to your .env file.');
   throw new Error('FATAL ERROR: JWT_SECRET is not defined.');
@@ -40,8 +41,8 @@ const port = process.env.PORT || 8080;
 
 // --- CORRECT MIDDLEWARE ORDER ---
 app.use(cors()); 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 
 // --- API ROUTES ---
 app.use('/api/users', userRoutes);
