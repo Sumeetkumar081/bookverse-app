@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { User, Book, Notification, View, OverdueInfo, Feedback, FeedbackStatus, AdminSubView, ChatSession, ChatMessage, AppButtonProps, GoogleBookSearchResult, MyLibrarySubView, PaginatedBooksResponse, KpiData } from './types';
@@ -1348,10 +1349,16 @@ const App: React.FC = () => {
     }
 
     try {
+        let processedDescription = newBookDescription.trim();
+        const words = processedDescription.split(/\s+/).filter(Boolean); // Split by whitespace and filter empty strings
+        if (words.length > 100) {
+            processedDescription = words.slice(0, 100).join(' ') + '...';
+        }
+
         const bookData: Partial<Book> = {
             title: newBookTitle,
             author: newBookAuthor,
-            description: newBookDescription,
+            description: processedDescription,
             isbn: newBookIsbn,
             genre: newBookGenre,
             language: newBookLanguage,
@@ -2203,7 +2210,7 @@ const App: React.FC = () => {
                     <FormInput id="newBookTitle" label="Book Title" value={newBookTitle} onChange={setNewBookTitle} error={addBookFormErrors.title} clearError={() => clearValidationErrorsForField('title', 'addBook')} />
                     <FormInput id="newBookAuthor" label="Author" value={newBookAuthor} onChange={setNewBookAuthor} error={addBookFormErrors.author} clearError={() => clearValidationErrorsForField('author', 'addBook')} />
                     <FormInput id="newBookIsbn" label="ISBN (Optional)" value={newBookIsbn} onChange={setNewBookIsbn} error={addBookFormErrors.isbn} clearError={() => clearValidationErrorsForField('isbn', 'addBook')} />
-                    <FormInputArea id="newBookDescription" label="Description (Optional)" value={newBookDescription} onChange={setNewBookDescription} error={addBookFormErrors.description} clearError={() => clearValidationErrorsForField('description', 'addBook')} />
+                    <FormInputArea id="newBookDescription" label="Description (Optional, 100 words max)" value={newBookDescription} onChange={setNewBookDescription} error={addBookFormErrors.description} clearError={() => clearValidationErrorsForField('description', 'addBook')} />
                     
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image <span className="text-red-500">*</span></label>

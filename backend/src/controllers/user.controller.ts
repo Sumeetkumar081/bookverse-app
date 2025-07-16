@@ -12,14 +12,14 @@ import crypto from 'crypto';
 // Helper to generate JWT
 const generateToken = (id: string): string => {
   return jwt.sign({ id }, process.env.JWT_SECRET!, {
-    expiresIn: '30d', // Token expires in 30 days
+    expiresIn: '365d', // Token expires in 1 year
   });
 };
 
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: any, res: any) => {
     const { name, email, phoneNumber, communityUnit, password, mygateId } = req.body;
 
     try {
@@ -55,7 +55,7 @@ export const registerUser = async (req: Request, res: Response) => {
 // @desc    Authenticate user & get token
 // @route   POST /api/users/login
 // @access  Public
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: any, res: any) => {
     const { email, password } = req.body;
 
     try {
@@ -87,7 +87,7 @@ export const loginUser = async (req: Request, res: Response) => {
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
-export const getUserProfile = async (req: Request, res: Response) => {
+export const getUserProfile = async (req: any, res: any) => {
     if (req.user) {
         res.json(req.user);
     } else {
@@ -98,7 +98,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
-export const updateUserProfile = async (req: Request, res: Response) => {
+export const updateUserProfile = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -118,7 +118,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 // @desc    User deactivates their own account
 // @route   POST /api/users/profile/deactivate
 // @access  Private
-export const deactivateUser = async (req: Request, res: Response) => {
+export const deactivateUser = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -144,7 +144,7 @@ export const deactivateUser = async (req: Request, res: Response) => {
 // @desc    User requests reactivation from an admin
 // @route   POST /api/users/profile/reactivate-request
 // @access  Public (for deactivated users trying to log in)
-export const requestReactivation = async (req: Request, res: Response) => {
+export const requestReactivation = async (req: any, res: any) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email });
@@ -174,7 +174,7 @@ export const requestReactivation = async (req: Request, res: Response) => {
 // @desc    User deletes their own account
 // @route   DELETE /api/users/profile
 // @access  Private
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -202,7 +202,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 // @desc    Get multiple users by their IDs
 // @route   POST /api/users/by-ids
 // @access  Private
-export const getUsersByIds = async (req: Request, res: Response) => {
+export const getUsersByIds = async (req: any, res: any) => {
     const { userIds } = req.body;
     if (!userIds || !Array.isArray(userIds)) return res.status(400).json({ message: 'User IDs must be provided as an array.' });
     
@@ -218,7 +218,7 @@ export const getUsersByIds = async (req: Request, res: Response) => {
 // @desc    Toggle a book in user's wishlist
 // @route   PUT /api/users/wishlist/:bookId
 // @access  Private
-export const toggleWishlist = async (req: Request, res: Response) => {
+export const toggleWishlist = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -246,7 +246,7 @@ export const toggleWishlist = async (req: Request, res: Response) => {
 // @desc    Get books from user's wishlist
 // @route   GET /api/users/wishlist-books
 // @access  Private
-export const getWishlistBooks = async (req: Request, res: Response) => {
+export const getWishlistBooks = async (req: any, res: any) => {
     if (!req.user || !req.user.wishlistBookIds) return res.status(200).json([]);
     
     try {
@@ -258,7 +258,7 @@ export const getWishlistBooks = async (req: Request, res: Response) => {
 };
 
 // --- PASSWORD RESET ---
-export const forgotPassword = async (req: Request, res: Response) => {
+export const forgotPassword = async (req: any, res: any) => {
     // This flow is simplified for this environment. In a real app, you'd send an email with a link.
     const { email } = req.body;
     try {
@@ -281,7 +281,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req: any, res: any) => {
      // This flow is simplified.
     try {
         const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -306,7 +306,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 
 // --- NOTIFICATION CONTROLLERS ---
-export const getNotificationsForUser = async (req: Request, res: Response) => {
+export const getNotificationsForUser = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
 
     try {
@@ -317,7 +317,7 @@ export const getNotificationsForUser = async (req: Request, res: Response) => {
     }
 };
 
-export const markNotificationAsRead = async (req: Request, res: Response) => {
+export const markNotificationAsRead = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
     try {
         const notification = await Notification.findOneAndUpdate(
@@ -332,7 +332,7 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
     }
 };
 
-export const markAllNotificationsAsRead = async (req: Request, res: Response) => {
+export const markAllNotificationsAsRead = async (req: any, res: any) => {
     if (!req.user) return res.status(401).json({ message: 'Not authorized' });
     try {
         await Notification.updateMany({ userId: req.user.id, isRead: false }, { $set: { isRead: true } });
@@ -348,7 +348,7 @@ export const markAllNotificationsAsRead = async (req: Request, res: Response) =>
 // @desc    Get users pending approval
 // @route   GET /api/users/admin/pending-approvals
 // @access  Admin
-export const getPendingApprovals = async (req: Request, res: Response) => {
+export const getPendingApprovals = async (req: any, res: any) => {
     try {
         const users = await User.find({ isApproved: false }).sort({ createdAt: -1 });
         res.status(200).json(users);
@@ -360,7 +360,7 @@ export const getPendingApprovals = async (req: Request, res: Response) => {
 // @desc    Approve a user registration
 // @route   POST /api/users/admin/approve/:userId
 // @access  Admin
-export const approveUser = async (req: Request, res: Response) => {
+export const approveUser = async (req: any, res: any) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -384,7 +384,7 @@ export const approveUser = async (req: Request, res: Response) => {
 // @desc    Reject a user registration
 // @route   POST /api/users/admin/reject/:userId
 // @access  Admin
-export const rejectUser = async (req: Request, res: Response) => {
+export const rejectUser = async (req: any, res: any) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -401,7 +401,7 @@ export const rejectUser = async (req: Request, res: Response) => {
 // @desc    Get all users for management
 // @route   GET /api/users/admin/users
 // @access  Admin
-export const getAllUsersForAdmin = async (req: Request, res: Response) => {
+export const getAllUsersForAdmin = async (req: any, res: any) => {
     try {
         const users = await User.find({ isAdmin: false }).sort({ createdAt: -1 });
         res.status(200).json(users);
@@ -413,7 +413,7 @@ export const getAllUsersForAdmin = async (req: Request, res: Response) => {
 // @desc    Toggle a user's active status
 // @route   POST /api/users/admin/toggle-activation/:userId
 // @access  Admin
-export const toggleUserActivation = async (req: Request, res: Response) => {
+export const toggleUserActivation = async (req: any, res: any) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -438,7 +438,7 @@ export const toggleUserActivation = async (req: Request, res: Response) => {
 // @desc    Admin approves a reactivation request
 // @route   POST /api/users/admin/reactivate/:userId
 // @access  Admin
-export const reactivateUser = async (req: Request, res: Response) => {
+export const reactivateUser = async (req: any, res: any) => {
     try {
         const user = await User.findById(req.params.userId);
         if (!user) return res.status(404).json({ message: 'User not found' });

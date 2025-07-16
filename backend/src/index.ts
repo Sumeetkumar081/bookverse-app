@@ -41,8 +41,8 @@ const port = process.env.PORT || 8080;
 
 // --- CORRECT MIDDLEWARE ORDER ---
 app.use(cors()); 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json() as express.RequestHandler);
+app.use(express.urlencoded({ extended: true }) as express.RequestHandler);
 
 // --- API ROUTES ---
 app.use('/api/users', userRoutes);
